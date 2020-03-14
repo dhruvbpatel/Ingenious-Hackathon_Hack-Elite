@@ -1,49 +1,172 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
+require(shinydashboard)
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+library(plotly)
 
-# Define UI for application that draws a histogram
-ui <- fluidPage(
 
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
 
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
-        ),
+recommendation <- read.csv('dt.csv',stringsAsFactors = F,header=T)
 
-        # Show a plot of the generated distribution
-        mainPanel(
-           plotOutput("distPlot")
-        )
+
+
+#Dashboard header carrying the title of the, dashboard
+header <- dashboardHeader(title = "COVID19 Dashboard",
+                          
+                          ## notification items
+                          dropdownMenu(type = "message",
+                                       messageItem(from = "Finance Update",message = "we are on threshold"),
+                                       messageItem(from="Sales Update",message = "Sales are at 50%",icon=icon("bar-chart"),time="22:00"),
+                                       messageItem(from="Sales Update",message = "sales meeting at 15:00 monday",time="15:00",icon = icon("handshake-o"))
+                          ),
+                          dropdownMenu(type="notifications",
+                                       notificationItem(
+                                           text="2 new tabs added to the dashboard",
+                                           icon = icon("dashboard"),
+                                           status="success"
+                                       ),
+                                       notificationItem(text="server is currently running at 95% load",
+                                                        icon = icon("warning"),
+                                                        status = "warning"
+                                       )  
+                          ),
+                          
+                          dropdownMenu(type="tasks",
+                                       taskItem(
+                                           value=80,
+                                           color = "red",
+                                           "Dashboard Tasks "
+                                       ),
+                                       
+                                       taskItem(
+                                           value = 60,
+                                           color = "blue",
+                                           "Health Status"
+                                       )
+                                       
+                          )
+                          
+                          )  
+
+
+#Sidebar content of the dashboard
+sidebar <- dashboardSidebar(
+    sidebarMenu(
+        menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
+        menuItem("Visualize",tabName="visualize",icon=icon("chart-pie")),
+        menuItem("Predict",tabName="predict",icon=icon("chart-line")),
+        menuItem("Visit-us", icon = icon("send",lib='glyphicon'), 
+                 href = "https://github.com/dhruvbpatel/Ingenious-Hackathon_Hack-Elite")
     )
 )
 
-# Define server logic required to draw a histogram
-server <- function(input, output) {
 
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
+frow1 <- fluidRow(
+    valueBoxOutput("value1")
+    ,valueBoxOutput("value2")
+    ,valueBoxOutput("value3")
+)
 
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white')
+frow2 <- fluidRow(
+        
+    box(
+        title = "Total Cases"
+        ,status = "primary"
+        ,solidHeader = TRUE 
+        ,collapsible = TRUE 
+        ,plotOutput("revenuebyPrd", height = "300px")
+    )
+    
+    ,box(
+        title = "Total Deaths"
+        ,status = "primary"
+        ,solidHeader = TRUE 
+        ,collapsible = TRUE 
+        ,plotOutput("revenuebyRegion", height = "300px")
+    ) 
+    
+)
+
+
+
+# combine the two fluid rows to make the body
+body <- dashboardBody(frow1, frow2)
+
+#completing the ui part with dashboardPage
+ui <- dashboardPage(title = 'covid19 Prediction', header, sidebar, body, skin='green')
+
+# create the server functions for the dashboard  
+server <- function(input, output) { 
+    
+    #some data manipulation to derive the values of KPI boxes
+    #total.cases <- sum(recommendation$TotalCases)
+    #sales.account <- recommendation %>% group_by(Account) %>% summarise(value = sum(Revenue)) %>% filter(value==max(value))
+    #prof.prod <- recommendation %>% group_by(Product) %>% summarise(value = sum(Revenue)) %>% filter(value==max(value))
+    #sum.total <- sum(recommendation$TotalCases)
+    
+    #creating the valueBoxOutput content
+    output$value1 <- renderValueBox({
+        valueBox(
+            formatC(recommendation$value, format="d", big.mark=',')
+            ,paste('Total Active Cases:',(recommendation$TotalCases))
+            ,icon = icon("stats",lib='glyphicon')
+            ,color = "purple")
+        
+        
     })
+    
+    
+    
+    output$value2 <- renderValueBox({
+        
+        valueBox(
+            formatC(recommendation$value, format="d", big.mark=',')
+            ,paste('Total Active Cases:',recommendation$TotalCases)
+            ,icon = icon("stats",lib='glyphicon')
+            ,color = "red")
+        
+    })
+    
+    
+    
+    output$value3 <- renderValueBox({
+        
+        valueBox(
+            formatC(recommendation$value, format="d", big.mark=',')
+            ,paste('Total Active Cases:',recommendation$TotalCases)
+            ,icon = icon("stats",lib='glyphicon')
+            ,color = "orange")
+        
+    })
+    
+    #creating the plotOutput content
+    
+    output$revenuebyPrd <- renderPlot({
+        # ggplot(data = recommendation, 
+        #        aes(x=TotalCases, y=TotalDeaths )) + geom_point() +
+        #     geom_smooth(se=F)+ ylab("Country") + 
+        #     xlab("TotalCases") + theme(legend.position="bottom" 
+        #                             ,plot.title = element_text(size=15, face="bold")) + 
+        #     ggtitle("Revenue by Product")
+       
+            plot_ly(data=recommendation, x = ~TotalCases, y = ~Country)
+       
+    })
+    
+    
+    output$revenuebyRegion <- renderPlot({
+        ggplot(data = recommendation, 
+               aes(x=Account, y=Revenue, fill=factor(Region))) + 
+            geom_bar(position = "dodge", stat = "identity") + ylab("Revenue (in Euros)") + 
+            xlab("Account") + theme(legend.position="bottom" 
+                                    ,plot.title = element_text(size=15, face="bold")) + 
+            ggtitle("Revenue by Region") + labs(fill = "Region")
+    })
+    
+    
+    
 }
 
-# Run the application 
-shinyApp(ui = ui, server = server)
+
+shinyApp(ui, server)
