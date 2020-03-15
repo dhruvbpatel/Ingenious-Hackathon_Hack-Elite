@@ -115,12 +115,36 @@ ui <- shinyUI(
                               
                               
                               
-                          ), tabItem(
-                              tabName = "predict",h1("Predictions"),
-                              plotlyOutput("plot"),
-                              # verbatimTextOutput("event")
+                          )
+                          
+                          , tabItem(
+                              tabName = "predict",
+                              h1("Predictions"),
                               
-                          ))
+                              fluidRow(
+                                  headerPanel('Example'),
+                                  sidebarPanel(
+                                      selectInput('xcol','X Variable', names(data)),
+                                      selectInput('ycol','Y Variable', names(data)),
+                                      selected = names(data)[[2]])
+                                  
+                              ,
+                                  box(
+                                      
+                                      title = "Plots"
+                                      ,status = "primary"
+                                      ,solidHeader = TRUE
+                                      ,collapsible = TRUE
+                                      ,plotlyOutput("predict_plot", height = "400px",width = "400px")
+                                  )
+                              )
+                              # ,plotlyOutput("plot")
+                              
+
+
+                          )
+                          
+                          )
                       
                       
                       
@@ -153,7 +177,7 @@ server <- function(input, output) {
         
         valueBox(
             formatC(data$value, format="d", big.mark=',')
-            ,paste('Total Active Cases:',data$TotalCases)
+            ,paste('Total Deaths :',data$TotalDeaths)
             ,icon = icon("stats",lib='glyphicon')
             ,color = "red")
         
@@ -165,7 +189,7 @@ server <- function(input, output) {
         
         valueBox(
             formatC(data$value, format="d", big.mark=',')
-            ,paste('Total Active Cases:',data$TotalCases)
+            ,paste('Total Recoverd :',data$Total_Recovered)
             ,icon = icon("stats",lib='glyphicon')
             ,color = "orange")
         
@@ -202,7 +226,22 @@ server <- function(input, output) {
     })
     
     
+    x <- reactive({
+        data[,input$xcol]
+    })
     
+    y <- reactive({
+        data[,input$ycol]
+    })
+    
+    
+    output$predict_plot <- renderPlotly(
+        plot1 <- plot_ly(
+            x = x(),
+            y = y(), 
+            type = 'scatter',
+            mode = 'markers')
+    )
     
 }
 
