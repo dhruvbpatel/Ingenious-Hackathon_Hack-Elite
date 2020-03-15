@@ -5,6 +5,9 @@ library(dplyr)
 library(reshape2)
 library(plotly)
 library(shiny)
+library(jtools)
+
+
     
 
 
@@ -110,16 +113,20 @@ ui <- shinyUI(
                                   
                                   mainPanel(
                                       tableOutput("tableData"),
-                                      plotOutput("plot"),
+                                      
                                       verbatimTextOutput("sum"),
                                       verbatimTextOutput("sum2"),
+                                      verbatimTextOutput("pred"),
                                       verbatimTextOutput("print")
                                   ), box(
                                       title = "Plots"
                                       ,status = "primary"
                                       ,solidHeader = TRUE
-                                      ,collapsible = TRUE
-                                      ,plotlyOutput("visual_plot", height = "200px",width = "200px")
+                                      ,collapsible = TRUE,
+                                      dev.new(width=550,height=300,unit="10px")
+                                      ,plotOutput("visual_plot", height = "200px",width = "200px"),
+                                      cex(2)
+                                      
                                   )
                                   
                               )
@@ -253,6 +260,7 @@ server <- function(input, output) {
     })
     
     
+    
     output$predict_plot <- renderPlotly(
         plot1 <- plot_ly(
             x = x(),
@@ -264,11 +272,35 @@ server <- function(input, output) {
     output$tableData <- renderTable({
         data
     })
-    output$visual_plot<- renderPlotly({
-        regr <- lm(data$id~data$TotalDeaths)
+    output$visual_plot<- renderPlot({
+        x1 <- c(1:151)
+        ggplot(data = data, aes(x =x1, y = TotalDeaths)) +
+            geom_point() +
+            stat_smooth(method = "lm", col = "dodgerblue3") +
+            theme(panel.background = element_rect(fill = "white"),
+                  axis.line.x=element_line(),
+                  axis.line.y=element_line()) +
+            ggtitle("Linear Model Fitted to Data")
         
-        plot_ly(data,x=data$id,y=data$TotalDeaths,mode="lines")
-        abline(regr)
+        # regr <- lm(data$id~data$TotalDeaths)
+        # effect_plot(   data=data,regr,pred=TotalDeaths,interval = T,plot.points = T     )
+        # 
+        # plot_ly(data,x=data$id,y=data$TotalDeaths,mode="lines")
+        # abline(regr)
+    })
+    
+    
+    output$pred<- renderPrint({
+        
+        
+        predict.lm(lm(data$id~data$TotalDeaths),data.frame(id=2))
+        
+        
+        # regr <- lm(data$id~data$TotalDeaths)
+        # effect_plot(   data=data,regr,pred=TotalDeaths,interval = T,plot.points = T     )
+        # 
+        # plot_ly(data,x=data$id,y=data$TotalDeaths,mode="lines")
+        # abline(regr)
     })
     
     output$sum <- renderPrint({
