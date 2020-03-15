@@ -55,8 +55,8 @@ header <- dashboardHeader(title = "COVID19 Dashboard",
 sidebar <- dashboardSidebar(
     sidebarMenu(
         menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
-        menuItem("Visualize",tabName="visualize",icon=icon("chart-pie")),
-        menuItem("Predict",tabName="predict",icon=icon("chart-line")),
+        menuSubItem("Visualize",tabName="visualize",icon=icon("chart-pie")),
+        menuSubItem("Predict",tabName="predict",icon=icon("chart-line")),
         menuItem("Visit-us", icon = icon("send",lib='glyphicon'), 
                  href = "https://github.com/dhruvbpatel/Ingenious-Hackathon_Hack-Elite")
     )
@@ -92,7 +92,32 @@ frow2 <- fluidRow(
 
 
 # combine the two fluid rows to make the body
-body <- dashboardBody(frow1, frow2)
+body <- dashboardBody(frow1, frow2,
+                      tabItems(
+                      tabItem( 
+                          tabName = "visualize",h1("Practicals "),
+                          verbatimTextOutput("dhruv"),
+                          fileInput("file1","Choose CSV file",
+                                    multiple = FALSE,
+                                    accept = c("text/csv",
+                                               "text/comma-seperated-values,text/plain"
+                                               ,".csv")
+                          )
+                          
+                          
+                          
+                      ), tabItem(
+                          tabName = "predicr",h1("Finance Dashboard"),
+                          plotlyOutput("plot"),
+                          verbatimTextOutput("event")
+                          
+                      ))
+                      
+                      
+                      
+                      
+                      
+                      )
 
 #completing the ui part with dashboardPage
 ui <- dashboardPage(title = 'covid19 Prediction', header, sidebar, body, skin='green')
