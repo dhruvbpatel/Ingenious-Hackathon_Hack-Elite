@@ -124,8 +124,8 @@ ui <- shinyUI(
                                       ,solidHeader = TRUE
                                       ,collapsible = TRUE,
                                       dev.new(width=550,height=300,unit="10px")
-                                      ,plotOutput("visual_plot", height = "200px",width = "200px"),
-                                      cex(2)
+                                      ,plotOutput("visual_plot", height = "200px",width = "200px")
+                                     
                                       
                                   )
                                   
@@ -229,9 +229,9 @@ server <- function(input, output) {
         #             geom_smooth(se = F)+ ylab("Country") +xlab("TotalCases") + theme(legend.position="bottom"
         #                                     ,plot.title = element_text(size=15, face="bold")) +
         #             ggtitle("Revenue by Product")
-        y1 <- (data$TotalCases)
         
-        plot_ly(data,x=~Country, y=y1,type="scatter")
+        
+        plot_ly(data,x=~Country, y=~TotalCases,type="scatter")
         
         
         

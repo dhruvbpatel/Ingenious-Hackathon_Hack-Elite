@@ -1,0 +1,12 @@
+name: analyzing_covid19
+title: analyzing_covid19
+username:
+account: dhruvpatel
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1950370
+bundleId: 2882746
+url: https://dhruvpatel.shinyapps.io/analyzing_covid19/
+when: 1584254270.45991
+asMultiple: FALSE
+asStatic: FALSE
