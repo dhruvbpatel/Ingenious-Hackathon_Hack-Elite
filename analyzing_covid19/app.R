@@ -5,7 +5,7 @@ library(dplyr)
 library(reshape2)
 library(plotly)
 library(shiny)
-
+    
 
 
 data <- read.csv('dt.csv',stringsAsFactors = F,header=T)
@@ -56,7 +56,7 @@ ui <- shinyUI(
                       br(),
                       sidebarMenu(
                           menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
-                          menuSubItem("Visualize",tabName="visualize",icon=icon("chart-pie")),
+                                 menuSubItem("Visualize",tabName="visualize",icon=icon("chart-pie")),
                           menuSubItem("Predict",tabName="predict",icon=icon("chart-line")),
                           menuItem("Visit-us", icon = icon("send",lib='glyphicon'), 
                                    href = "https://github.com/dhruvbpatel/Ingenious-Hackathon_Hack-Elite")
@@ -104,25 +104,43 @@ ui <- shinyUI(
                           ),
                           
                           tabItem( 
-                              tabName = "visualize",h1("Visualizations "),
-                              verbatimTextOutput("visual_output"),
-                              fileInput("file1","Choose CSV file",
-                                        multiple = FALSE,
-                                        accept = c("text/csv",
-                                                   "text/comma-seperated-values,text/plain"
-                                                   ,".csv")
+                              tabName = "predict",h1("predictions "),
+                              fluidRow(
+                                  
+                                  
+                                  mainPanel(
+                                      tableOutput("tableData"),
+                                      plotOutput("plot"),
+                                      verbatimTextOutput("sum"),
+                                      verbatimTextOutput("sum2"),
+                                      verbatimTextOutput("print")
+                                  ), box(
+                                      title = "Plots"
+                                      ,status = "primary"
+                                      ,solidHeader = TRUE
+                                      ,collapsible = TRUE
+                                      ,plotlyOutput("visual_plot", height = "200px",width = "200px")
+                                  )
+                                  
                               )
+                              # verbatimTextOutput("visual_output"),
+                              # fileInput("file1","Choose CSV file",
+                              #           multiple = FALSE,
+                              #           accept = c("text/csv",
+                              #                      "text/comma-seperated-values,text/plain"
+                              #                      ,".csv")
+                              # )
                               
                               
                               
                           )
                           
                           , tabItem(
-                              tabName = "predict",
-                              h1("Predictions"),
+                              tabName = "visualize",
+                              h1("Visualizations"),
                               
                               fluidRow(
-                                  headerPanel('Example'),
+                                  
                                   sidebarPanel(
                                       selectInput('xcol','X Variable', names(data)),
                                       selectInput('ycol','Y Variable', names(data)),
@@ -213,7 +231,7 @@ server <- function(input, output) {
     })
     
     
-    output$td_plot <- renderPlotly({
+            output$td_plot <- renderPlotly({
         
         # ggplot(data = recommendation,
         #        aes(x=TotalCases,y=id))+ geom_point()+
@@ -243,7 +261,34 @@ server <- function(input, output) {
             mode = 'markers')
     )
     
+    output$tableData <- renderTable({
+        data
+    })
+    output$visual_plot<- renderPlotly({
+        regr <- lm(data$id~data$TotalDeaths)
+        
+        plot_ly(data,x=data$id,y=data$TotalDeaths,mode="lines")
+        abline(regr)
+    })
+    
+    output$sum <- renderPrint({
+        regr <- lm(data$id~data$TotalDeaths)
+        summary(regr)
+    })
+    
+    output$sum2 <- renderPrint({
+        summary(data)
+    })
+    
+    output$print <- renderPrint({
+        regr <- lm(data$id~data$TotalDeaths,na.rm=T)
+        print(regr)
+    })
+    
+    
 }
+
+
 
 # Run the application 
 shinyApp(ui = ui, server = server)
