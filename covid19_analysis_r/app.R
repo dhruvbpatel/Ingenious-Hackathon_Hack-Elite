@@ -4,21 +4,22 @@ library(ggplot2)
 library(dplyr)
 library(reshape2)
 library(plotly)
+    
 
 
-
-recommendation <- read.csv('dt.csv',stringsAsFactors = F,header=T)
+data <- read.csv('dt.csv',stringsAsFactors = F,header=T)
 
 
 
 #Dashboard header carrying the title of the, dashboard
+
 header <- dashboardHeader(title = "COVID19 Dashboard",
                           
                           ## notification items
                           dropdownMenu(type = "message",
-                                       messageItem(from = "Finance Update",message = "we are on threshold"),
-                                       messageItem(from="Sales Update",message = "Sales are at 50%",icon=icon("bar-chart"),time="22:00"),
-                                       messageItem(from="Sales Update",message = "sales meeting at 15:00 monday",time="15:00",icon = icon("handshake-o"))
+                                       messageItem(from = " Update",message = "we are on threshold"),
+                                       messageItem(from=" Update",message = "data analysis 50% done",icon=icon("bar-chart"),time="22:00"),
+                                       messageItem(from=" Update",message = "data update at 15:00 monday",time="15:00",icon = icon("handshake-o"))
                           ),
                           dropdownMenu(type="notifications",
                                        notificationItem(
@@ -75,16 +76,16 @@ frow2 <- fluidRow(
         ,status = "primary"
         ,solidHeader = TRUE 
         ,collapsible = TRUE 
-        ,plotOutput("revenuebyPrd", height = "300px")
+        ,plotlyOutput("tc_plot", height = "400px",width="400px")
     )
     
     ,box(
         title = "Total Deaths"
         ,status = "primary"
-        ,solidHeader = TRUE 
-        ,collapsible = TRUE 
-        ,plotOutput("revenuebyRegion", height = "300px")
-    ) 
+        ,solidHeader = TRUE
+        ,collapsible = TRUE
+        ,plotlyOutput("td_plot", height = "400px",width = "400px")
+    )
     
 )
 
@@ -108,8 +109,8 @@ server <- function(input, output) {
     #creating the valueBoxOutput content
     output$value1 <- renderValueBox({
         valueBox(
-            formatC(recommendation$value, format="d", big.mark=',')
-            ,paste('Total Active Cases:',(recommendation$TotalCases))
+            formatC(data$value, format="d", big.mark=',')
+            ,paste('Total Active Cases:',(data$TotalCases))
             ,icon = icon("stats",lib='glyphicon')
             ,color = "purple")
         
@@ -121,8 +122,8 @@ server <- function(input, output) {
     output$value2 <- renderValueBox({
         
         valueBox(
-            formatC(recommendation$value, format="d", big.mark=',')
-            ,paste('Total Active Cases:',recommendation$TotalCases)
+            formatC(data$value, format="d", big.mark=',')
+            ,paste('Total Active Cases:',data$TotalCases)
             ,icon = icon("stats",lib='glyphicon')
             ,color = "red")
         
@@ -133,8 +134,8 @@ server <- function(input, output) {
     output$value3 <- renderValueBox({
         
         valueBox(
-            formatC(recommendation$value, format="d", big.mark=',')
-            ,paste('Total Active Cases:',recommendation$TotalCases)
+            formatC(data$value, format="d", big.mark=',')
+            ,paste('Total Active Cases:',data$TotalCases)
             ,icon = icon("stats",lib='glyphicon')
             ,color = "orange")
         
@@ -142,28 +143,34 @@ server <- function(input, output) {
     
     #creating the plotOutput content
     
-    output$revenuebyPrd <- renderPlot({
-        # ggplot(data = recommendation, 
-        #        aes(x=TotalCases, y=TotalDeaths )) + geom_point() +
-        #     geom_smooth(se=F)+ ylab("Country") + 
-        #     xlab("TotalCases") + theme(legend.position="bottom" 
-        #                             ,plot.title = element_text(size=15, face="bold")) + 
+    output$tc_plot <- renderPlotly({
+# 
+#         ggplot(data = recommendation,
+#                aes(x=TotalCases,y=id))+ geom_point()+
+#             geom_smooth(se = F)+ ylab("Country") +xlab("TotalCases") + theme(legend.position="bottom"
+#                                     ,plot.title = element_text(size=15, face="bold")) +
+#             ggtitle("Revenue by Product")
+            y1 <- (data$TotalCases)
+        
+    plot_ly(data,x=~Country, y=y1,type="scatter")
+        
+
+          
+    })
+    
+
+    output$td_plot <- renderPlotly({
+        
+        # ggplot(data = recommendation,
+        #        aes(x=TotalCases,y=id))+ geom_point()+
+        #     geom_smooth(se = F)+ ylab("Country") +xlab("TotalCases") + theme(legend.position="bottom"
+        #                                                                      ,plot.title = element_text(size=15, face="bold")) +
         #     ggtitle("Revenue by Product")
-       
-            plot_ly(data=recommendation, x = ~TotalCases, y = ~Country)
-       
+        #
+        plot_ly(data, x =~TotalDeaths,y=~Active_Cases)
+        
     })
-    
-    
-    output$revenuebyRegion <- renderPlot({
-        ggplot(data = recommendation, 
-               aes(x=Account, y=Revenue, fill=factor(Region))) + 
-            geom_bar(position = "dodge", stat = "identity") + ylab("Revenue (in Euros)") + 
-            xlab("Account") + theme(legend.position="bottom" 
-                                    ,plot.title = element_text(size=15, face="bold")) + 
-            ggtitle("Revenue by Region") + labs(fill = "Region")
-    })
-    
+
     
     
 }

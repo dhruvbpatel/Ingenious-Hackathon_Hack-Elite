@@ -34,7 +34,7 @@ frow2 <- fluidRow(
     ,status = "primary"
     ,solidHeader = TRUE 
     ,collapsible = TRUE 
-    ,plotOutput("revenuebyPrd", height = "300px")
+    ,plotlyOutput("revenuebyPrd", height = "300px")
   )
   
   ,box(
@@ -101,23 +101,25 @@ server <- function(input, output) {
   
   #creating the plotOutput content
   
-  output$revenuebyPrd <- renderPlot({
-    ggplot(data = recommendation, 
-           aes(x=Product, y=Revenue, fill=factor(Region))) + 
-      geom_bar(position = "dodge", stat = "identity") + ylab("Revenue (in Euros)") + 
-      xlab("Product") + theme(legend.position="bottom" 
-                              ,plot.title = element_text(size=15, face="bold")) + 
-      ggtitle("Revenue by Product") + labs(fill = "Region")
+  output$revenuebyPrd <- renderPlotly({
+    # ggplot(data = recommendation, 
+    #        aes(x=Product, y=Revenue, fill=factor(Region))) + 
+    #   geom_bar(position = "dodge", stat = "identity") + ylab("Revenue (in Euros)") + 
+    #   xlab("Product") + theme(legend.position="bottom" 
+    #                           ,plot.title = element_text(size=15, face="bold")) + 
+    #   ggtitle("Revenue by Product") + labs(fill = "Region")
+    plot_ly(recommendation, x = ~TotalCases, type="histogram")
+    
   })
   
   
   output$revenuebyRegion <- renderPlot({
-    ggplot(data = recommendation, 
-           aes(x=Account, y=Revenue, fill=factor(Region))) + 
-      geom_bar(position = "dodge", stat = "identity") + ylab("Revenue (in Euros)") + 
-      xlab("Account") + theme(legend.position="bottom" 
-                              ,plot.title = element_text(size=15, face="bold")) + 
-      ggtitle("Revenue by Region") + labs(fill = "Region")
+    # ggplot(data = recommendation, 
+    #        aes(x=Account, y=Revenue, fill=factor(Region))) + 
+    #   geom_bar(position = "dodge", stat = "identity") + ylab("Revenue (in Euros)") + 
+    #   xlab("Account") + theme(legend.position="bottom" 
+    #                           ,plot.title = element_text(size=15, face="bold")) + 
+    #   ggtitle("Revenue by Region") + labs(fill = "Region")
   })
   
   
